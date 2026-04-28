@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useMemo } from "react";
 import { Plus, Wrench, Trash2, Search, AlertTriangle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
 import { isPast, addDays } from "date-fns";
 
 type Vehicule = { id: string; marque: string; modele: string; immatriculation: string };
@@ -18,6 +19,7 @@ type Entretien = {
 const defaultForm = { vehiculeId: "", date: "", type: "", cout: "", notes: "", prochainRappel: "" };
 
 export function EntretienClient({ entretiens: initial, vehicules }: { entretiens: Entretien[]; vehicules: Vehicule[] }) {
+  const { toast } = useToast();
   const [entretiens, setEntretiens] = useState(initial);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -52,7 +54,9 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
       const vehicule = vehicules.find(v => v.id === form.vehiculeId)!;
       setEntretiens(prev => [{ ...created, vehicule }, ...prev]);
       setModalOpen(false); setForm(defaultForm);
-    } finally { setLoading(false); }
+      toast.success("Entretien enregistré");
+    } catch { toast.error("Une erreur est survenue"); }
+    finally { setLoading(false); }
   }
 
   async function handleDelete() {
@@ -62,7 +66,9 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
       await fetch(`/api/entretien/${deleteId}`, { method: "DELETE" });
       setEntretiens(prev => prev.filter(e => e.id !== deleteId));
       setDeleteId(null);
-    } finally { setLoading(false); }
+      toast.success("Entretien supprimé");
+    } catch { toast.error("Erreur lors de la suppression"); }
+    finally { setLoading(false); }
   }
 
   return (
@@ -70,7 +76,7 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
       <div className="page-header">
         <div>
           <h2 className="section-title">Entretien</h2>
-          <p className="text-xs text-white/30 mt-1">{entretiens.length} entrée{entretiens.length > 1 ? "s" : ""}</p>
+          <p className="text-xs text-foreground/30 mt-1">{entretiens.length} entrée{entretiens.length > 1 ? "s" : ""}</p>
         </div>
         <Button onClick={() => { setForm(defaultForm); setModalOpen(true); }}>
           <Plus className="w-4 h-4" /> Ajouter un entretien
@@ -102,7 +108,7 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
       )}
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/25" />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Véhicule, type d'entretien…" className="input-base pl-9" />
       </div>
 
@@ -121,8 +127,8 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
                 return (
                   <tr key={e.id} className="group">
                     <td>
-                      <p className="text-sm font-semibold text-white/90">{e.vehicule.marque} {e.vehicule.modele}</p>
-                      <code className="text-[11px] font-mono text-white/30">{e.vehicule.immatriculation}</code>
+                      <p className="text-sm font-semibold text-foreground/90">{e.vehicule.marque} {e.vehicule.modele}</p>
+                      <code className="text-[11px] font-mono text-foreground/30">{e.vehicule.immatriculation}</code>
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
@@ -130,20 +136,20 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
                           <Wrench className="w-3 h-3 text-orange-400" />
                         </div>
                         <div>
-                          <span className="text-sm text-white/80">{e.type}</span>
-                          {e.notes && <p className="text-xs text-white/30 mt-0.5 max-w-[160px] truncate">{e.notes}</p>}
+                          <span className="text-sm text-foreground/80">{e.type}</span>
+                          {e.notes && <p className="text-xs text-foreground/30 mt-0.5 max-w-[160px] truncate">{e.notes}</p>}
                         </div>
                       </div>
                     </td>
                     <td>
-                      <div className="flex items-center gap-1.5 text-xs text-white/50">
+                      <div className="flex items-center gap-1.5 text-xs text-foreground/50">
                         <Calendar className="w-3 h-3" />
                         {formatDate(e.date)}
                       </div>
                     </td>
                     <td>
-                      <span className="text-sm font-semibold text-white/80">
-                        {e.cout != null ? formatCurrency(e.cout) : <span className="text-white/20">—</span>}
+                      <span className="text-sm font-semibold text-foreground/80">
+                        {e.cout != null ? formatCurrency(e.cout) : <span className="text-foreground/20">—</span>}
                       </span>
                     </td>
                     <td>
@@ -153,18 +159,18 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
                             ? "bg-rose-500/12 text-rose-400 border border-rose-500/20"
                             : bientot
                             ? "bg-amber-500/12 text-amber-400 border border-amber-500/20"
-                            : "text-white/40"
+                            : "text-foreground/40"
                         }`}>
                           {(enRetard || bientot) && <AlertTriangle className="w-3 h-3" />}
                           {formatDate(e.prochainRappel)}
                         </span>
                       ) : (
-                        <span className="text-white/20 text-sm">—</span>
+                        <span className="text-foreground/20 text-sm">—</span>
                       )}
                     </td>
                     <td>
                       <button onClick={() => setDeleteId(e.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                        <Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-rose-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400" />
                       </button>
                     </td>
                   </tr>

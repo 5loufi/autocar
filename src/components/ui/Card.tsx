@@ -26,7 +26,7 @@ export function Card({ children, className, hover, onClick, gradient }: CardProp
 
 export function CardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("flex items-center justify-between px-5 py-4 border-b border-white/[0.06]", className)}>
+    <div className={cn("flex items-center justify-between px-5 py-4 border-b border-foreground/[0.06]", className)}>
       {children}
     </div>
   );
@@ -37,5 +37,5 @@ export function CardContent({ children, className }: { children: React.ReactNode
 }
 
 export function CardTitle({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <h3 className={cn("font-semibold text-white text-sm", className)}>{children}</h3>;
+  return <h3 className={cn("font-semibold text-foreground text-sm", className)}>{children}</h3>;
 }

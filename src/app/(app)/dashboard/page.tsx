@@ -1,4 +1,4 @@
-import { Car, Users, CalendarCheck, CreditCard, Clock, ArrowUpRight, AlertCircle, TrendingUp } from "lucide-react";
+﻿import { Car, Users, CalendarCheck, CreditCard, Clock, ArrowUpRight, AlertCircle, TrendingUp } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { StatCard } from "@/components/ui/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -59,13 +59,13 @@ export default async function DashboardPage() {
           <div>
             <p className="text-xs font-semibold text-violet-400 uppercase tracking-widest mb-1">Bienvenue</p>
             <h2 className="text-2xl font-bold text-white">Bonjour, Mon Agence 👋</h2>
-            <p className="text-sm text-white/40 mt-1">
+            <p className="text-sm text-foreground/40 mt-1">
               {d.reservationsEnCours} location{d.reservationsEnCours > 1 ? "s" : ""} en cours · Taux d&apos;occupation : <span className="text-violet-400 font-semibold">{tauxOccupation}%</span>
             </p>
           </div>
           <div className="hidden lg:flex items-center gap-3">
             <div className="text-right">
-              <p className="text-xs text-white/30">Chiffre d&apos;affaires</p>
+              <p className="text-xs text-foreground/30">Chiffre d&apos;affaires</p>
               <p className="text-xl font-bold gradient-text">{formatCurrency(d.revenus)}</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
@@ -90,7 +90,7 @@ export default async function DashboardPage() {
             <AlertCircle className="w-4 h-4 text-amber-400" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-white/80">
+            <p className="text-sm text-foreground/80">
               <span className="font-bold text-amber-400">{formatCurrency(d.enAttente)}</span> de paiements en attente
             </p>
           </div>
@@ -111,12 +111,12 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="!p-0">
             {d.reservationsRecentes.length === 0 ? (
-              <p className="text-sm text-white/25 px-5 py-10 text-center">Aucune réservation</p>
+              <p className="text-sm text-foreground/25 px-5 py-10 text-center">Aucune réservation</p>
             ) : (
               <div>
                 {d.reservationsRecentes.map((r) => (
                   <Link key={r.id} href={`/reservations`}
-                    className="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.03] transition-colors border-b border-white/[0.04] last:border-0 group">
+                    className="flex items-center justify-between px-5 py-3.5 hover:bg-foreground/[0.03] transition-colors border-b border-foreground/[0.04] last:border-0 group">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600/20 to-indigo-600/10 flex items-center justify-center flex-shrink-0">
                         <span className="text-[11px] font-bold text-violet-400">
@@ -124,17 +124,17 @@ export default async function DashboardPage() {
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors">
+                        <p className="text-sm font-semibold text-foreground/90 group-hover:text-foreground transition-colors">
                           {r.client.prenom} {r.client.nom}
                         </p>
-                        <p className="text-xs text-white/30">{r.vehicule.marque} {r.vehicule.modele} · {formatDate(r.dateDepart)}</p>
+                        <p className="text-xs text-foreground/30">{r.vehicule.marque} {r.vehicule.modele} · {formatDate(r.dateDepart)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`badge text-[11px] ${STATUT_RESERVATION_COLORS[r.statut]}`}>
                         {STATUT_RESERVATION_LABELS[r.statut]}
                       </span>
-                      <span className="text-sm font-bold text-white/80">{formatCurrency(r.prixTotal)}</span>
+                      <span className="text-sm font-bold text-foreground/80">{formatCurrency(r.prixTotal)}</span>
                     </div>
                   </Link>
                 ))}
@@ -148,20 +148,20 @@ export default async function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Retours prévus</CardTitle>
-              <div className="flex items-center gap-1.5 text-xs text-white/30">
+              <div className="flex items-center gap-1.5 text-xs text-foreground/30">
                 <Clock className="w-3 h-3" />3 jours
               </div>
             </CardHeader>
             <CardContent className="!p-0">
               {d.retoursAVenir.length === 0 ? (
-                <p className="text-xs text-white/25 px-5 py-6 text-center">Aucun retour prévu</p>
+                <p className="text-xs text-foreground/25 px-5 py-6 text-center">Aucun retour prévu</p>
               ) : (
                 <div>
                   {d.retoursAVenir.map(r => (
-                    <div key={r.id} className="flex items-center justify-between px-5 py-3 border-b border-white/[0.04] last:border-0">
+                    <div key={r.id} className="flex items-center justify-between px-5 py-3 border-b border-foreground/[0.04] last:border-0">
                       <div>
-                        <p className="text-xs font-semibold text-white/80">{r.vehicule.marque} {r.vehicule.modele}</p>
-                        <p className="text-[11px] text-white/30">{r.client.prenom} {r.client.nom}</p>
+                        <p className="text-xs font-semibold text-foreground/80">{r.vehicule.marque} {r.vehicule.modele}</p>
+                        <p className="text-[11px] text-foreground/30">{r.client.prenom} {r.client.nom}</p>
                       </div>
                       <p className="text-xs font-semibold text-amber-400">{formatDate(r.dateRetour)}</p>
                     </div>
@@ -182,9 +182,9 @@ export default async function DashboardPage() {
               ].map(({ s, count, color }) => (
                 <div key={s} className="flex items-center gap-3">
                   <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${color}`} />
-                  <span className="text-xs text-white/40 flex-1">{STATUT_VEHICULE_LABELS[s]}</span>
-                  <span className="text-xs font-bold text-white/70">{count}</span>
-                  <div className="w-16 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                  <span className="text-xs text-foreground/40 flex-1">{STATUT_VEHICULE_LABELS[s]}</span>
+                  <span className="text-xs font-bold text-foreground/70">{count}</span>
+                  <div className="w-16 h-1 bg-foreground/[0.06] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${color}`}
                       style={{ width: `${d.totalVehicules > 0 ? (count / d.totalVehicules) * 100 : 0}%` }}

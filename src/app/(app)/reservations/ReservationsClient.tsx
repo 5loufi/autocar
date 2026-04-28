@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useMemo } from "react";
 import { Plus, Search, CalendarCheck, Edit2, Trash2, Car, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatCurrency, formatDate, STATUT_RESERVATION_LABELS, STATUT_RESERVATION_COLORS } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
+import { useToast } from "@/components/ui/Toast";
 
 type Vehicule = { id:string; marque:string; modele:string; immatriculation:string; prixJour:number; caution:number };
 type Client   = { id:string; nom:string; prenom:string; telephone:string };
@@ -20,6 +21,7 @@ const defaultForm = { vehiculeId:"",clientId:"",dateDepart:"",dateRetour:"",prix
 
 export function ReservationsClient({ reservations:initial, vehicules, clients }:
   { reservations:Reservation[]; vehicules:Vehicule[]; clients:Client[] }) {
+  const { toast } = useToast();
   const [reservations, setReservations] = useState(initial);
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("");
@@ -72,7 +74,9 @@ export function ReservationsClient({ reservations:initial, vehicules, clients }:
         setReservations(p => [{...created,vehicule:v,client:c,paiements:[]},...p]);
       }
       setModalOpen(false);
-    } finally { setLoading(false); }
+      toast.success(editRes ? "Réservation mise à jour" : "Réservation créée");
+    } catch { toast.error("Une erreur est survenue"); }
+    finally { setLoading(false); }
   }
 
   async function handleDelete() {
@@ -82,7 +86,9 @@ export function ReservationsClient({ reservations:initial, vehicules, clients }:
       await fetch(`/api/reservations/${deleteId}`, { method:"DELETE" });
       setReservations(p => p.filter(r => r.id!==deleteId));
       setDeleteId(null);
-    } finally { setLoading(false); }
+      toast.success("Réservation supprimée");
+    } catch { toast.error("Erreur lors de la suppression"); }
+    finally { setLoading(false); }
   }
 
   const montantPaye = (r:Reservation) => r.paiements.filter(p=>p.statut==="PAYE").reduce((s,p)=>s+p.montant,0);
@@ -92,27 +98,27 @@ export function ReservationsClient({ reservations:initial, vehicules, clients }:
       <div className="page-header">
         <div>
           <h2 className="section-title">Réservations</h2>
-          <p className="text-xs text-white/30 mt-1">{reservations.length} réservation{reservations.length>1?"s":""}</p>
+          <p className="text-xs text-foreground/30 mt-1">{reservations.length} réservation{reservations.length>1?"s":""}</p>
         </div>
         <Button onClick={openCreate}><Plus className="w-4 h-4"/>Nouvelle réservation</Button>
       </div>
 
       {/* Status tabs */}
-      <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl w-fit">
+      <div className="flex gap-1 p-1 bg-foreground/[0.03] border border-foreground/[0.06] rounded-xl w-fit">
         {["", ...STATUTS].map(s => {
           const count = s ? reservations.filter(r=>r.statut===s).length : reservations.length;
           return (
             <button key={s} onClick={() => setFilterStatut(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${filterStatut===s?"bg-white/10 text-white":"text-white/30 hover:text-white/60"}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${filterStatut===s?"bg-foreground/10 text-white":"text-foreground/30 hover:text-foreground/60"}`}>
               {s ? STATUT_RESERVATION_LABELS[s] : "Toutes"}
-              <span className={`ml-1.5 text-[10px] ${filterStatut===s?"text-violet-400":"text-white/20"}`}>{count}</span>
+              <span className={`ml-1.5 text-[10px] ${filterStatut===s?"text-violet-400":"text-foreground/20"}`}>{count}</span>
             </button>
           );
         })}
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25"/>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/25"/>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher client, véhicule…" className="input-base pl-9"/>
       </div>
 
@@ -138,30 +144,30 @@ export function ReservationsClient({ reservations:initial, vehicules, clients }:
                           {r.client.prenom[0]}{r.client.nom[0]}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-white/90">{r.client.prenom} {r.client.nom}</p>
-                          <p className="text-xs text-white/30">{r.client.telephone}</p>
+                          <p className="text-sm font-semibold text-foreground/90">{r.client.prenom} {r.client.nom}</p>
+                          <p className="text-xs text-foreground/30">{r.client.telephone}</p>
                         </div>
                       </div>
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
-                        <Car className="w-3.5 h-3.5 text-white/25 flex-shrink-0"/>
+                        <Car className="w-3.5 h-3.5 text-foreground/25 flex-shrink-0"/>
                         <div>
-                          <p className="text-sm text-white/70">{r.vehicule.marque} {r.vehicule.modele}</p>
-                          <code className="text-[11px] font-mono text-white/30">{r.vehicule.immatriculation}</code>
+                          <p className="text-sm text-foreground/70">{r.vehicule.marque} {r.vehicule.modele}</p>
+                          <code className="text-[11px] font-mono text-foreground/30">{r.vehicule.immatriculation}</code>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <div className="flex items-center gap-1.5 text-xs text-white/60">
+                      <div className="flex items-center gap-1.5 text-xs text-foreground/60">
                         <span>{formatDate(r.dateDepart)}</span>
-                        <ArrowRight className="w-3 h-3 text-white/20"/>
+                        <ArrowRight className="w-3 h-3 text-foreground/20"/>
                         <span>{formatDate(r.dateRetour)}</span>
                       </div>
-                      <p className="text-[11px] text-white/25 mt-0.5">{days} jour{days>1?"s":""}</p>
+                      <p className="text-[11px] text-foreground/25 mt-0.5">{days} jour{days>1?"s":""}</p>
                     </td>
                     <td>
-                      <p className="text-sm font-bold text-white/90">{formatCurrency(r.prixTotal)}</p>
+                      <p className="text-sm font-bold text-foreground/90">{formatCurrency(r.prixTotal)}</p>
                       {reste>0 && <p className="text-[11px] text-amber-400 mt-0.5">Reste: {formatCurrency(reste)}</p>}
                     </td>
                     <td>
@@ -171,8 +177,8 @@ export function ReservationsClient({ reservations:initial, vehicules, clients }:
                     </td>
                     <td>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-white/[0.08] rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5 text-white/40"/></button>
-                        <button onClick={() => setDeleteId(r.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-rose-400"/></button>
+                        <button onClick={() => openEdit(r)} className="p-1.5 hover:bg-foreground/[0.08] rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5 text-foreground/40"/></button>
+                        <button onClick={() => setDeleteId(r.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400"/></button>
                       </div>
                     </td>
                   </tr>

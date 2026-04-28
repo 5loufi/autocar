@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useMemo } from "react";
 import { Plus, Search, Car, Edit2, Trash2, Gauge, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { cn, formatCurrency, formatNumber, STATUT_VEHICULE_LABELS, STATUT_VEHICULE_COLORS } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 type Vehicule = {
   id: string; marque: string; modele: string; annee: number;
@@ -18,7 +19,7 @@ type Vehicule = {
 const STATUTS = ["DISPONIBLE","RESERVE","LOUE","ENTRETIEN","INDISPONIBLE"];
 const STATUT_DOT: Record<string,string> = {
   DISPONIBLE:"bg-emerald-400", RESERVE:"bg-amber-400",
-  LOUE:"bg-violet-400", ENTRETIEN:"bg-orange-400", INDISPONIBLE:"bg-white/20",
+  LOUE:"bg-violet-400", ENTRETIEN:"bg-orange-400", INDISPONIBLE:"bg-foreground/20",
 };
 const defaultForm = {
   marque:"", modele:"", annee: new Date().getFullYear().toString(),
@@ -27,6 +28,7 @@ const defaultForm = {
 };
 
 export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] }) {
+  const { toast } = useToast();
   const [vehicules, setVehicules] = useState(initial);
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("");
@@ -76,7 +78,9 @@ export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] 
         setVehicules(p => [{ ...created, _count:{reservations:0} }, ...p]);
       }
       setModalOpen(false);
-    } finally { setLoading(false); }
+      toast.success(editVehicule ? "Véhicule mis à jour" : "Véhicule ajouté avec succès");
+    } catch { toast.error("Une erreur est survenue"); }
+    finally { setLoading(false); }
   }
 
   async function handleDelete() {
@@ -86,7 +90,9 @@ export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] 
       await fetch(`/api/vehicules/${deleteId}`, { method:"DELETE" });
       setVehicules(p => p.filter(v => v.id !== deleteId));
       setDeleteId(null);
-    } finally { setLoading(false); }
+      toast.success("Véhicule supprimé");
+    } catch { toast.error("Erreur lors de la suppression"); }
+    finally { setLoading(false); }
   }
 
   return (
@@ -95,7 +101,7 @@ export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] 
       <div className="page-header">
         <div>
           <h2 className="section-title">Véhicules</h2>
-          <p className="text-xs text-white/30 mt-1">{vehicules.length} véhicule{vehicules.length>1?"s":""} · {stats.dispo} disponible{stats.dispo>1?"s":""} · {stats.loue} loué{stats.loue>1?"s":""}</p>
+          <p className="text-xs text-foreground/30 mt-1">{vehicules.length} véhicule{vehicules.length>1?"s":""} · {stats.dispo} disponible{stats.dispo>1?"s":""} · {stats.loue} loué{stats.loue>1?"s":""}</p>
         </div>
         <Button onClick={openCreate}><Plus className="w-4 h-4" />Ajouter un véhicule</Button>
       </div>
@@ -109,7 +115,7 @@ export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] 
         ].map(s => (
           <div key={s.label} className={cn("flex items-center gap-3 px-4 py-3 rounded-xl border", s.bg)}>
             <span className={cn("text-2xl font-bold", s.color)}>{s.count}</span>
-            <span className="text-xs text-white/40">{s.label}</span>
+            <span className="text-xs text-foreground/40">{s.label}</span>
           </div>
         ))}
       </div>
@@ -117,16 +123,16 @@ export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] 
       {/* Filtres */}
       <div className="flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/25" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Marque, modèle, immatriculation…" className="input-base pl-9" />
         </div>
         <select value={filterStatut} onChange={e => setFilterStatut(e.target.value)} className="input-base w-auto">
           <option value="">Tous les statuts</option>
           {STATUTS.map(s => <option key={s} value={s}>{STATUT_VEHICULE_LABELS[s]}</option>)}
         </select>
-        <div className="flex bg-white/[0.04] border border-white/[0.07] rounded-xl p-1 gap-0.5">
+        <div className="flex bg-foreground/[0.04] border border-foreground/[0.07] rounded-xl p-1 gap-0.5">
           {(["grid","list"] as const).map(v => (
-            <button key={v} onClick={() => setView(v)} className={cn("p-1.5 rounded-lg transition-colors", view===v ? "bg-white/10 text-white" : "text-white/30 hover:text-white/60")}>
+            <button key={v} onClick={() => setView(v)} className={cn("p-1.5 rounded-lg transition-colors", view===v ? "bg-foreground/10 text-foreground" : "text-foreground/30 hover:text-foreground/60")}>
               {v==="grid" ? <LayoutGrid className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
             </button>
           ))}
@@ -139,44 +145,44 @@ export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] 
       ) : view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(v => (
-            <div key={v.id} className="surface p-5 group hover:border-white/[0.12] hover:shadow-card-hover transition-all duration-300">
+            <div key={v.id} className="surface p-5 group hover:border-foreground/[0.12] hover:shadow-card-hover transition-all duration-300">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600/15 to-indigo-600/10 flex items-center justify-center border border-violet-500/15">
                     <Car className="w-5 h-5 text-violet-400" />
                   </div>
                   <div>
-                    <p className="font-bold text-white text-sm">{v.marque} {v.modele}</p>
-                    <p className="text-xs text-white/30">{v.annee} · {v.couleur}</p>
+                    <p className="font-bold text-foreground text-sm">{v.marque} {v.modele}</p>
+                    <p className="text-xs text-foreground/30">{v.annee} · {v.couleur}</p>
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => openEdit(v)} className="p-1.5 hover:bg-white/[0.08] rounded-lg transition-colors">
-                    <Edit2 className="w-3.5 h-3.5 text-white/40" />
+                  <button onClick={() => openEdit(v)} className="p-1.5 hover:bg-foreground/[0.08] rounded-lg transition-colors">
+                    <Edit2 className="w-3.5 h-3.5 text-foreground/40" />
                   </button>
                   <button onClick={() => setDeleteId(v.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors">
-                    <Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-rose-400" />
+                    <Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400" />
                   </button>
                 </div>
               </div>
 
               <div className="flex items-center justify-between mb-4">
                 <span className={`badge ${STATUT_VEHICULE_COLORS[v.statut]}`}>{STATUT_VEHICULE_LABELS[v.statut]}</span>
-                <code className="text-[11px] font-mono text-white/40 bg-white/[0.05] px-2 py-0.5 rounded-lg">{v.immatriculation}</code>
+                <code className="text-[11px] font-mono text-foreground/40 bg-foreground/[0.05] px-2 py-0.5 rounded-lg">{v.immatriculation}</code>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/[0.05]">
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-foreground/[0.05]">
                 <div>
-                  <p className="text-[10px] text-white/25 uppercase tracking-widest mb-0.5">Prix/jour</p>
+                  <p className="text-[10px] text-foreground/25 uppercase tracking-widest mb-0.5">Prix/jour</p>
                   <p className="text-sm font-bold text-violet-400">{formatCurrency(v.prixJour)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-white/25 uppercase tracking-widest mb-0.5">Km</p>
-                  <p className="text-sm font-semibold text-white/70 flex items-center gap-1"><Gauge className="w-3 h-3"/>{formatNumber(v.kilometrage)}</p>
+                  <p className="text-[10px] text-foreground/25 uppercase tracking-widest mb-0.5">Km</p>
+                  <p className="text-sm font-semibold text-foreground/70 flex items-center gap-1"><Gauge className="w-3 h-3"/>{formatNumber(v.kilometrage)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-white/25 uppercase tracking-widest mb-0.5">Locations</p>
-                  <p className="text-sm font-semibold text-white/70">{v._count.reservations}</p>
+                  <p className="text-[10px] text-foreground/25 uppercase tracking-widest mb-0.5">Locations</p>
+                  <p className="text-sm font-semibold text-foreground/70">{v._count.reservations}</p>
                 </div>
               </div>
             </div>
@@ -200,20 +206,20 @@ export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] 
                         <Car className="w-4 h-4 text-violet-400" />
                       </div>
                       <div>
-                        <p className="font-semibold text-white/90 text-sm">{v.marque} {v.modele}</p>
-                        <p className="text-xs text-white/30">{v.annee} · {v.couleur}</p>
+                        <p className="font-semibold text-foreground/90 text-sm">{v.marque} {v.modele}</p>
+                        <p className="text-xs text-foreground/30">{v.annee} · {v.couleur}</p>
                       </div>
                     </div>
                   </td>
-                  <td><code className="text-xs font-mono text-white/50 bg-white/[0.05] px-2 py-1 rounded-lg">{v.immatriculation}</code></td>
+                  <td><code className="text-xs font-mono text-foreground/50 bg-foreground/[0.05] px-2 py-1 rounded-lg">{v.immatriculation}</code></td>
                   <td><span className={`badge ${STATUT_VEHICULE_COLORS[v.statut]}`}>{STATUT_VEHICULE_LABELS[v.statut]}</span></td>
                   <td><span className="font-bold text-violet-400">{formatCurrency(v.prixJour)}</span></td>
-                  <td><span className="text-white/50 text-sm">{formatNumber(v.kilometrage)}</span></td>
-                  <td><span className="text-white/50 text-sm">{v._count.reservations}</span></td>
+                  <td><span className="text-foreground/50 text-sm">{formatNumber(v.kilometrage)}</span></td>
+                  <td><span className="text-foreground/50 text-sm">{v._count.reservations}</span></td>
                   <td>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(v)} className="p-1.5 hover:bg-white/[0.08] rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5 text-white/40"/></button>
-                      <button onClick={() => setDeleteId(v.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-rose-400"/></button>
+                      <button onClick={() => openEdit(v)} className="p-1.5 hover:bg-foreground/[0.08] rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5 text-foreground/40"/></button>
+                      <button onClick={() => setDeleteId(v.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400"/></button>
                     </div>
                   </td>
                 </tr>

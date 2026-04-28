@@ -73,13 +73,13 @@ export function StatCard({ title, value, icon: Icon, trend, color = "violet", cl
           </div>
         )}
       </div>
-      <p className="text-2xl font-bold text-white tracking-tight animate-count-up">{value}</p>
+      <p className="text-2xl font-bold text-foreground tracking-tight animate-count-up">{value}</p>
       <div className="flex items-center gap-2 mt-1">
         <span className={cn("w-1.5 h-1.5 rounded-full", c.dot)} />
-        <p className="text-xs text-white/40 font-medium">{title}</p>
+        <p className="text-xs text-foreground/40 font-medium">{title}</p>
       </div>
       {trend && (
-        <p className="text-[11px] text-white/25 mt-1">{trend.label}</p>
+        <p className="text-[11px] text-foreground/25 mt-1">{trend.label}</p>
       )}
     </div>
   );

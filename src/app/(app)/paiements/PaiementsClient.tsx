@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useMemo } from "react";
 import { Plus, CreditCard, Banknote, Search, Trash2, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatCurrency, formatDate, STATUT_PAIEMENT_LABELS, STATUT_PAIEMENT_COLORS, MODE_PAIEMENT_LABELS, TYPE_PAIEMENT_LABELS } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
 
 type ResInfo = { id:string; client:{nom:string;prenom:string}; vehicule:{marque:string;modele:string}; prixTotal:number };
 type Paiement = { id:string; montant:number; modePaiement:string; statut:string; type:string; reference:string|null; notes:string|null; createdAt:Date; reservation:ResInfo };
@@ -16,6 +17,7 @@ const STATUTS= ["EN_ATTENTE","PARTIEL","PAYE","REMBOURSE"];
 const defaultForm = { reservationId:"",montant:"",modePaiement:"ESPECES",statut:"PAYE",type:"SOLDE",reference:"",notes:"" };
 
 export function PaiementsClient({ paiements:initial, reservations }:{ paiements:Paiement[]; reservations:ResInfo[] }) {
+  const { toast } = useToast();
   const [paiements, setPaiements] = useState(initial);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,7 +44,9 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
       const reservation = reservations.find(r=>r.id===form.reservationId)!;
       setPaiements(p => [{...created,reservation},...p]);
       setModalOpen(false); setForm(defaultForm);
-    } finally { setLoading(false); }
+      toast.success("Paiement enregistré");
+    } catch { toast.error("Une erreur est survenue"); }
+    finally { setLoading(false); }
   }
 
   async function handleDelete() {
@@ -52,7 +56,9 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
       await fetch(`/api/paiements/${deleteId}`, { method:"DELETE" });
       setPaiements(p => p.filter(p=>p.id!==deleteId));
       setDeleteId(null);
-    } finally { setLoading(false); }
+      toast.success("Paiement supprimé");
+    } catch { toast.error("Erreur lors de la suppression"); }
+    finally { setLoading(false); }
   }
 
   return (
@@ -60,7 +66,7 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
       <div className="page-header">
         <div>
           <h2 className="section-title">Paiements</h2>
-          <p className="text-xs text-white/30 mt-1">{paiements.length} transaction{paiements.length>1?"s":""}</p>
+          <p className="text-xs text-foreground/30 mt-1">{paiements.length} transaction{paiements.length>1?"s":""}</p>
         </div>
         <Button onClick={() => { setForm(defaultForm); setModalOpen(true); }}><Plus className="w-4 h-4"/>Enregistrer un paiement</Button>
       </div>
@@ -74,7 +80,7 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
         ].map(s => (
           <div key={s.label} className={`surface p-4 border ${s.bg}`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-white/30">{s.label}</span>
+              <span className="text-xs text-foreground/30">{s.label}</span>
               <span className="text-base">{s.icon}</span>
             </div>
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
@@ -83,7 +89,7 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25"/>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/25"/>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher client, véhicule…" className="input-base pl-9"/>
       </div>
 
@@ -99,22 +105,22 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
               {filtered.map(p => (
                 <tr key={p.id} className="group">
                   <td>
-                    <p className="text-sm font-semibold text-white/90">{p.reservation.client.prenom} {p.reservation.client.nom}</p>
-                    <p className="text-xs text-white/30">{p.reservation.vehicule.marque} {p.reservation.vehicule.modele}</p>
+                    <p className="text-sm font-semibold text-foreground/90">{p.reservation.client.prenom} {p.reservation.client.nom}</p>
+                    <p className="text-xs text-foreground/30">{p.reservation.vehicule.marque} {p.reservation.vehicule.modele}</p>
                   </td>
-                  <td><span className="text-xs text-white/50 bg-white/[0.05] px-2 py-0.5 rounded-lg">{TYPE_PAIEMENT_LABELS[p.type]}</span></td>
+                  <td><span className="text-xs text-foreground/50 bg-foreground/[0.05] px-2 py-0.5 rounded-lg">{TYPE_PAIEMENT_LABELS[p.type]}</span></td>
                   <td>
-                    <div className="flex items-center gap-1.5 text-sm text-white/50">
+                    <div className="flex items-center gap-1.5 text-sm text-foreground/50">
                       {p.modePaiement==="CARTE"?<CreditCard className="w-3.5 h-3.5"/>:<Banknote className="w-3.5 h-3.5"/>}
                       {MODE_PAIEMENT_LABELS[p.modePaiement]}
                     </div>
                   </td>
-                  <td><span className="text-sm font-bold text-white/90">{formatCurrency(p.montant)}</span></td>
+                  <td><span className="text-sm font-bold text-foreground/90">{formatCurrency(p.montant)}</span></td>
                   <td><span className={`badge ${STATUT_PAIEMENT_COLORS[p.statut]}`}>{STATUT_PAIEMENT_LABELS[p.statut]}</span></td>
-                  <td><span className="text-xs text-white/30">{formatDate(p.createdAt)}</span></td>
+                  <td><span className="text-xs text-foreground/30">{formatDate(p.createdAt)}</span></td>
                   <td>
                     <button onClick={() => setDeleteId(p.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                      <Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-rose-400"/>
+                      <Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400"/>
                     </button>
                   </td>
                 </tr>

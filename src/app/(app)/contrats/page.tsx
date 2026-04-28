@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { ContratCard } from "./ContratCard";
 import { FileText, ArrowRight, CheckCircle } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -21,7 +21,7 @@ export default async function ContratsPage() {
       <div className="page-header">
         <div>
           <h2 className="section-title">Contrats</h2>
-          <p className="text-xs text-white/30 mt-1">{contrats.length} contrat{contrats.length > 1 ? "s" : ""}</p>
+          <p className="text-xs text-foreground/30 mt-1">{contrats.length} contrat{contrats.length > 1 ? "s" : ""}</p>
         </div>
       </div>
 
@@ -29,7 +29,7 @@ export default async function ContratsPage() {
         <div className="surface p-5 border-amber-500/20">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            <p className="text-sm font-semibold text-white/70">Réservations sans contrat</p>
+            <p className="text-sm font-semibold text-foreground/70">Réservations sans contrat</p>
             <span className="ml-auto text-xs font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg">
               {reservationsSansContrat.length}
             </span>
@@ -38,10 +38,10 @@ export default async function ContratsPage() {
             {reservationsSansContrat.map(r => (
               <div key={r.id} className="flex items-center justify-between p-3.5 bg-amber-500/5 border border-amber-500/15 rounded-xl">
                 <div>
-                  <p className="text-sm font-semibold text-white/90">{r.client.prenom} {r.client.nom}</p>
-                  <div className="flex items-center gap-1.5 text-xs text-white/40 mt-0.5">
+                  <p className="text-sm font-semibold text-foreground/90">{r.client.prenom} {r.client.nom}</p>
+                  <div className="flex items-center gap-1.5 text-xs text-foreground/40 mt-0.5">
                     <span>{r.vehicule.marque} {r.vehicule.modele}</span>
-                    <span className="text-white/20">·</span>
+                    <span className="text-foreground/20">·</span>
                     <span>{formatDate(r.dateDepart)}</span>
                     <ArrowRight className="w-3 h-3" />
                     <span>{formatDate(r.dateRetour)}</span>
@@ -74,21 +74,21 @@ export default async function ContratsPage() {
                     </code>
                   </td>
                   <td>
-                    <p className="text-sm font-semibold text-white/90">{c.reservation.client.prenom} {c.reservation.client.nom}</p>
+                    <p className="text-sm font-semibold text-foreground/90">{c.reservation.client.prenom} {c.reservation.client.nom}</p>
                   </td>
                   <td>
-                    <p className="text-sm text-white/60">{c.reservation.vehicule.marque} {c.reservation.vehicule.modele}</p>
-                    <code className="text-[11px] font-mono text-white/30">{c.reservation.vehicule.immatriculation}</code>
+                    <p className="text-sm text-foreground/60">{c.reservation.vehicule.marque} {c.reservation.vehicule.modele}</p>
+                    <code className="text-[11px] font-mono text-foreground/30">{c.reservation.vehicule.immatriculation}</code>
                   </td>
                   <td>
-                    <div className="flex items-center gap-1.5 text-xs text-white/50">
+                    <div className="flex items-center gap-1.5 text-xs text-foreground/50">
                       <span>{formatDate(c.reservation.dateDepart)}</span>
-                      <ArrowRight className="w-3 h-3 text-white/20" />
+                      <ArrowRight className="w-3 h-3 text-foreground/20" />
                       <span>{formatDate(c.reservation.dateRetour)}</span>
                     </div>
                   </td>
                   <td>
-                    <span className="text-sm font-bold text-white/90">{formatCurrency(c.reservation.prixTotal)}</span>
+                    <span className="text-sm font-bold text-foreground/90">{formatCurrency(c.reservation.prixTotal)}</span>
                   </td>
                   <td>
                     <span className={`badge ${STATUT_RESERVATION_COLORS[c.reservation.statut]}`}>
@@ -101,7 +101,7 @@ export default async function ContratsPage() {
                         <CheckCircle className="w-3 h-3" /> Signé
                       </span>
                     ) : (
-                      <span className="text-xs text-white/25 bg-white/[0.04] border border-white/[0.06] px-2.5 py-1 rounded-lg">En attente</span>
+                      <span className="text-xs text-foreground/25 bg-foreground/[0.04] border border-foreground/[0.06] px-2.5 py-1 rounded-lg">En attente</span>
                     )}
                   </td>
                 </tr>

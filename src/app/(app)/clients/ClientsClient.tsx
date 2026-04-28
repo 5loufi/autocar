@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useMemo } from "react";
 import { Plus, Search, Users, Edit2, Trash2, Phone, Mail, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatDate, cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
 
 type Client = {
   id: string; nom: string; prenom: string; telephone: string;
@@ -21,6 +22,7 @@ const AVATAR_COLORS = [
 ];
 
 export function ClientsClient({ clients: initial }: { clients: Client[] }) {
+  const { toast } = useToast();
   const [clients, setClients] = useState(initial);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -63,7 +65,9 @@ export function ClientsClient({ clients: initial }: { clients: Client[] }) {
         setClients(p => [{...created,_count:{reservations:0}},...p]);
       }
       setModalOpen(false);
-    } finally { setLoading(false); }
+      toast.success(editClient ? "Client mis à jour" : "Client créé avec succès");
+    } catch { toast.error("Une erreur est survenue"); }
+    finally { setLoading(false); }
   }
 
   async function handleDelete() {
@@ -73,7 +77,9 @@ export function ClientsClient({ clients: initial }: { clients: Client[] }) {
       await fetch(`/api/clients/${deleteId}`, { method:"DELETE" });
       setClients(p => p.filter(c => c.id!==deleteId));
       setDeleteId(null);
-    } finally { setLoading(false); }
+      toast.success("Client supprimé");
+    } catch { toast.error("Erreur lors de la suppression"); }
+    finally { setLoading(false); }
   }
 
   return (
@@ -81,13 +87,13 @@ export function ClientsClient({ clients: initial }: { clients: Client[] }) {
       <div className="page-header">
         <div>
           <h2 className="section-title">Clients</h2>
-          <p className="text-xs text-white/30 mt-1">{clients.length} client{clients.length>1?"s":""} enregistré{clients.length>1?"s":""}</p>
+          <p className="text-xs text-foreground/30 mt-1">{clients.length} client{clients.length>1?"s":""} enregistré{clients.length>1?"s":""}</p>
         </div>
         <Button onClick={openCreate}><Plus className="w-4 h-4"/>Nouveau client</Button>
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25"/>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/25"/>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Nom, téléphone, email…" className="input-base pl-9"/>
       </div>
 
@@ -105,45 +111,45 @@ export function ClientsClient({ clients: initial }: { clients: Client[] }) {
                 <tr key={c.id} className="group">
                   <td>
                     <div className="flex items-center gap-3">
-                      <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-xs font-bold text-white flex-shrink-0", AVATAR_COLORS[i % AVATAR_COLORS.length])}>
+                      <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-xs font-bold text-foreground flex-shrink-0", AVATAR_COLORS[i % AVATAR_COLORS.length])}>
                         {c.prenom[0]}{c.nom[0]}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white/90">{c.prenom} {c.nom}</p>
-                        {c.adresse && <p className="text-xs text-white/30 truncate max-w-[180px]">{c.adresse}</p>}
+                        <p className="text-sm font-semibold text-foreground/90">{c.prenom} {c.nom}</p>
+                        {c.adresse && <p className="text-xs text-foreground/30 truncate max-w-[180px]">{c.adresse}</p>}
                       </div>
                     </div>
                   </td>
                   <td>
                     <div className="space-y-0.5">
-                      <div className="flex items-center gap-1.5 text-sm text-white/70">
-                        <Phone className="w-3 h-3 text-white/30"/>{c.telephone}
+                      <div className="flex items-center gap-1.5 text-sm text-foreground/70">
+                        <Phone className="w-3 h-3 text-foreground/30"/>{c.telephone}
                       </div>
-                      {c.email && <div className="flex items-center gap-1.5 text-xs text-white/35">
-                        <Mail className="w-3 h-3 text-white/20"/>{c.email}
+                      {c.email && <div className="flex items-center gap-1.5 text-xs text-foreground/35">
+                        <Mail className="w-3 h-3 text-foreground/20"/>{c.email}
                       </div>}
                     </div>
                   </td>
                   <td>
                     <div className="space-y-0.5">
-                      {c.permisNumero && <p className="text-xs text-white/50">Permis: <span className="font-mono">{c.permisNumero}</span></p>}
-                      {c.cinNumero && <p className="text-xs text-white/50">CIN: <span className="font-mono">{c.cinNumero}</span></p>}
-                      {c.permisExpiry && <p className="text-[11px] text-white/25">Exp: {formatDate(c.permisExpiry)}</p>}
+                      {c.permisNumero && <p className="text-xs text-foreground/50">Permis: <span className="font-mono">{c.permisNumero}</span></p>}
+                      {c.cinNumero && <p className="text-xs text-foreground/50">CIN: <span className="font-mono">{c.cinNumero}</span></p>}
+                      {c.permisExpiry && <p className="text-[11px] text-foreground/25">Exp: {formatDate(c.permisExpiry)}</p>}
                     </div>
                   </td>
                   <td>
                     <div className="flex items-center gap-2">
                       <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold",
-                        c._count.reservations>0?"bg-violet-500/15 text-violet-400":"bg-white/[0.05] text-white/25")}>
+                        c._count.reservations>0?"bg-violet-500/15 text-violet-400":"bg-foreground/[0.05] text-foreground/25")}>
                         {c._count.reservations}
                       </div>
-                      <span className="text-xs text-white/30">location{c._count.reservations!==1?"s":""}</span>
+                      <span className="text-xs text-foreground/30">location{c._count.reservations!==1?"s":""}</span>
                     </div>
                   </td>
                   <td>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(c)} className="p-1.5 hover:bg-white/[0.08] rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5 text-white/40"/></button>
-                      <button onClick={() => setDeleteId(c.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-rose-400"/></button>
+                      <button onClick={() => openEdit(c)} className="p-1.5 hover:bg-foreground/[0.08] rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5 text-foreground/40"/></button>
+                      <button onClick={() => setDeleteId(c.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400"/></button>
                     </div>
                   </td>
                 </tr>

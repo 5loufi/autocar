@@ -30,19 +30,26 @@ export function Modal({ open, onClose, title, children, size = "md", footer }: M
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose} />
       <div className={cn(
-        "relative w-full bg-[#12121c] border border-white/[0.08] rounded-2xl shadow-modal animate-slide-up",
+        "relative w-full border rounded-2xl animate-slide-up",
         sizeClasses[size]
-      )}>
+      )} style={{
+        backgroundColor: "rgb(var(--surface))",
+        borderColor: "rgb(var(--foreground) / 0.08)",
+        boxShadow: "var(--shadow-modal)",
+      }}>
         {/* Gradient top line */}
         <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent rounded-full" />
 
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
-          <h2 className="text-sm font-bold text-white">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-foreground/[0.06]">
+          <h2 className="text-sm font-bold text-foreground">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-white/[0.07] rounded-lg transition-colors text-white/40 hover:text-white"
+            className="p-1.5 rounded-lg transition-colors text-foreground/40 hover:text-foreground"
+            style={{ backgroundColor: "transparent" }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgb(var(--foreground) / 0.07)")}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
           >
             <X className="w-4 h-4" />
           </button>
@@ -53,7 +60,7 @@ export function Modal({ open, onClose, title, children, size = "md", footer }: M
         </div>
 
         {footer && (
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-white/[0.06]">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-foreground/[0.06]">
             {footer}
           </div>
         )}
