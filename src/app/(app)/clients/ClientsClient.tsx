@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ExportButton } from "@/components/ui/ExportButton";
 import { formatDate, cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/Toast";
 
@@ -89,7 +90,14 @@ export function ClientsClient({ clients: initial }: { clients: Client[] }) {
           <h2 className="section-title">Clients</h2>
           <p className="text-xs text-foreground/30 mt-1">{clients.length} client{clients.length>1?"s":""} enregistré{clients.length>1?"s":""}</p>
         </div>
-        <Button onClick={openCreate}><Plus className="w-4 h-4"/>Nouveau client</Button>
+        <div className="flex items-center gap-2">
+          <ExportButton
+            filename="clients.csv"
+            headers={["Prénom", "Nom", "Téléphone", "Email", "CIN", "Permis", "Adresse"]}
+            rows={clients.map(c => ({ "Prénom": c.prenom, "Nom": c.nom, "Téléphone": c.telephone, "Email": c.email, "CIN": c.cinNumero, "Permis": c.permisNumero, "Adresse": c.adresse }))}
+          />
+          <Button onClick={openCreate}><Plus className="w-4 h-4"/>Nouveau client</Button>
+        </div>
       </div>
 
       <div className="relative">

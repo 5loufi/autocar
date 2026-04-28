@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 import { useState, useMemo } from "react";
-import { Plus, Wrench, Trash2, Search, AlertTriangle, Calendar } from "lucide-react";
+import { Plus, Wrench, Trash2, Search, AlertTriangle, Calendar, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -23,6 +23,7 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
   const [entretiens, setEntretiens] = useState(initial);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [editEntretien, setEditEntretien] = useState<Entretien | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultForm);
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,20 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
     e.prochainRappel && isPast(new Date(e.prochainRappel))
   );
 
+  function openCreate() { setEditEntretien(null); setForm(defaultForm); setModalOpen(true); }
+  function openEdit(e: Entretien) {
+    setEditEntretien(e);
+    setForm({
+      vehiculeId: e.vehiculeId,
+      date: new Date(e.date).toISOString().split("T")[0],
+      type: e.type,
+      cout: e.cout?.toString() ?? "",
+      notes: e.notes ?? "",
+      prochainRappel: e.prochainRappel ? new Date(e.prochainRappel).toISOString().split("T")[0] : "",
+    });
+    setModalOpen(true);
+  }
+
   async function handleSave() {
     if (!form.vehiculeId || !form.date || !form.type) return;
     setLoading(true);
@@ -49,12 +64,20 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
         notes: form.notes || null,
         prochainRappel: form.prochainRappel ? new Date(form.prochainRappel) : null,
       };
-      const res = await fetch("/api/entretien", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const created = await res.json();
-      const vehicule = vehicules.find(v => v.id === form.vehiculeId)!;
-      setEntretiens(prev => [{ ...created, vehicule }, ...prev]);
+      if (editEntretien) {
+        const res = await fetch(`/api/entretien/${editEntretien.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const updated = await res.json();
+        const vehicule = vehicules.find(v => v.id === updated.vehiculeId)!;
+        setEntretiens(prev => prev.map(e => e.id === updated.id ? { ...updated, vehicule } : e));
+        toast.success("Entretien mis à jour");
+      } else {
+        const res = await fetch("/api/entretien", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const created = await res.json();
+        const vehicule = vehicules.find(v => v.id === form.vehiculeId)!;
+        setEntretiens(prev => [{ ...created, vehicule }, ...prev]);
+        toast.success("Entretien enregistré");
+      }
       setModalOpen(false); setForm(defaultForm);
-      toast.success("Entretien enregistré");
     } catch { toast.error("Une erreur est survenue"); }
     finally { setLoading(false); }
   }
@@ -78,12 +101,11 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
           <h2 className="section-title">Entretien</h2>
           <p className="text-xs text-foreground/30 mt-1">{entretiens.length} entrée{entretiens.length > 1 ? "s" : ""}</p>
         </div>
-        <Button onClick={() => { setForm(defaultForm); setModalOpen(true); }}>
+        <Button onClick={openCreate}>
           <Plus className="w-4 h-4" /> Ajouter un entretien
         </Button>
       </div>
 
-      {/* Alert banners */}
       {rappelsEnRetard.length > 0 && (
         <div className="flex items-start gap-3 bg-rose-500/8 border border-rose-500/20 rounded-2xl px-5 py-3.5">
           <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
@@ -169,9 +191,14 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
                       )}
                     </td>
                     <td>
-                      <button onClick={() => setDeleteId(e.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                        <Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400" />
-                      </button>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openEdit(e)} className="p-1.5 hover:bg-foreground/[0.08] rounded-lg transition-colors">
+                          <Edit2 className="w-3.5 h-3.5 text-foreground/40" />
+                        </button>
+                        <button onClick={() => setDeleteId(e.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors">
+                          <Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -181,8 +208,8 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Ajouter un entretien" size="md"
-        footer={<><Button variant="secondary" onClick={() => setModalOpen(false)}>Annuler</Button><Button onClick={handleSave} loading={loading}>Enregistrer</Button></>}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editEntretien ? "Modifier l'entretien" : "Ajouter un entretien"} size="md"
+        footer={<><Button variant="secondary" onClick={() => setModalOpen(false)}>Annuler</Button><Button onClick={handleSave} loading={loading}>{editEntretien ? "Enregistrer" : "Ajouter"}</Button></>}>
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label className="label">Véhicule *</label>

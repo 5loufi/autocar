@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 import { useState, useMemo } from "react";
-import { Plus, CreditCard, Banknote, Search, Trash2, TrendingUp } from "lucide-react";
+import { Plus, CreditCard, Banknote, Search, Trash2, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -21,6 +21,7 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
   const [paiements, setPaiements] = useState(initial);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [editPaiement, setEditPaiement] = useState<Paiement|null>(null);
   const [deleteId, setDeleteId] = useState<string|null>(null);
   const [form, setForm] = useState(defaultForm);
   const [loading, setLoading] = useState(false);
@@ -34,17 +35,39 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
   const totalAttente = paiements.filter(p=>p.statut!=="PAYE"&&p.statut!=="REMBOURSE").reduce((s,p)=>s+p.montant,0);
   const totalMois    = paiements.filter(p=>{const d=new Date(p.createdAt);const n=new Date();return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()&&p.statut==="PAYE";}).reduce((s,p)=>s+p.montant,0);
 
+  function openCreate() { setEditPaiement(null); setForm(defaultForm); setModalOpen(true); }
+  function openEdit(p: Paiement) {
+    setEditPaiement(p);
+    setForm({
+      reservationId: p.reservation.id,
+      montant: p.montant.toString(),
+      modePaiement: p.modePaiement,
+      statut: p.statut,
+      type: p.type,
+      reference: p.reference ?? "",
+      notes: p.notes ?? "",
+    });
+    setModalOpen(true);
+  }
+
   async function handleSave() {
     if (!form.reservationId||!form.montant) return;
     setLoading(true);
     try {
       const body = { reservationId:form.reservationId, montant:parseFloat(form.montant), modePaiement:form.modePaiement, statut:form.statut, type:form.type, reference:form.reference||null, notes:form.notes||null };
-      const res = await fetch("/api/paiements", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
-      const created = await res.json();
-      const reservation = reservations.find(r=>r.id===form.reservationId)!;
-      setPaiements(p => [{...created,reservation},...p]);
+      if (editPaiement) {
+        const res = await fetch(`/api/paiements/${editPaiement.id}`, { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+        const updated = await res.json();
+        setPaiements(p => p.map(x => x.id===updated.id ? {...updated, reservation:editPaiement.reservation} : x));
+        toast.success("Paiement mis à jour");
+      } else {
+        const res = await fetch("/api/paiements", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+        const created = await res.json();
+        const reservation = reservations.find(r=>r.id===form.reservationId)!;
+        setPaiements(p => [{...created,reservation},...p]);
+        toast.success("Paiement enregistré");
+      }
       setModalOpen(false); setForm(defaultForm);
-      toast.success("Paiement enregistré");
     } catch { toast.error("Une erreur est survenue"); }
     finally { setLoading(false); }
   }
@@ -68,10 +91,9 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
           <h2 className="section-title">Paiements</h2>
           <p className="text-xs text-foreground/30 mt-1">{paiements.length} transaction{paiements.length>1?"s":""}</p>
         </div>
-        <Button onClick={() => { setForm(defaultForm); setModalOpen(true); }}><Plus className="w-4 h-4"/>Enregistrer un paiement</Button>
+        <Button onClick={openCreate}><Plus className="w-4 h-4"/>Enregistrer un paiement</Button>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-3 gap-4">
         {[
           { label:"Total encaissé",    value:formatCurrency(totalPaye),    color:"text-emerald-400", bg:"bg-emerald-500/8 border-emerald-500/15", icon:"💰" },
@@ -119,9 +141,14 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
                   <td><span className={`badge ${STATUT_PAIEMENT_COLORS[p.statut]}`}>{STATUT_PAIEMENT_LABELS[p.statut]}</span></td>
                   <td><span className="text-xs text-foreground/30">{formatDate(p.createdAt)}</span></td>
                   <td>
-                    <button onClick={() => setDeleteId(p.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                      <Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400"/>
-                    </button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => openEdit(p)} className="p-1.5 hover:bg-foreground/[0.08] rounded-lg transition-colors">
+                        <Edit2 className="w-3.5 h-3.5 text-foreground/40"/>
+                      </button>
+                      <button onClick={() => setDeleteId(p.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors">
+                        <Trash2 className="w-3.5 h-3.5 text-foreground/40 hover:text-rose-400"/>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -130,12 +157,12 @@ export function PaiementsClient({ paiements:initial, reservations }:{ paiements:
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Enregistrer un paiement" size="md"
-        footer={<><Button variant="secondary" onClick={() => setModalOpen(false)}>Annuler</Button><Button onClick={handleSave} loading={loading}>Enregistrer</Button></>}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editPaiement ? "Modifier le paiement" : "Enregistrer un paiement"} size="md"
+        footer={<><Button variant="secondary" onClick={() => setModalOpen(false)}>Annuler</Button><Button onClick={handleSave} loading={loading}>{editPaiement ? "Enregistrer" : "Ajouter"}</Button></>}>
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label className="label">Réservation *</label>
-            <select value={form.reservationId} onChange={e => setForm(p=>({...p,reservationId:e.target.value}))} className="input-base">
+            <select value={form.reservationId} onChange={e => setForm(p=>({...p,reservationId:e.target.value}))} className="input-base" disabled={!!editPaiement}>
               <option value="">Choisir une réservation</option>
               {reservations.map(r => <option key={r.id} value={r.id}>{r.client.prenom} {r.client.nom} — {r.vehicule.marque} ({formatCurrency(r.prixTotal)})</option>)}
             </select>

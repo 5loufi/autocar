@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { cn, formatCurrency, formatNumber, STATUT_VEHICULE_LABELS, STATUT_VEHICULE_COLORS } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 type Vehicule = {
   id: string; marque: string; modele: string; annee: number;
@@ -103,7 +104,14 @@ export function VehiculesClient({ vehicules: initial }: { vehicules: Vehicule[] 
           <h2 className="section-title">Véhicules</h2>
           <p className="text-xs text-foreground/30 mt-1">{vehicules.length} véhicule{vehicules.length>1?"s":""} · {stats.dispo} disponible{stats.dispo>1?"s":""} · {stats.loue} loué{stats.loue>1?"s":""}</p>
         </div>
-        <Button onClick={openCreate}><Plus className="w-4 h-4" />Ajouter un véhicule</Button>
+        <div className="flex items-center gap-2">
+          <ExportButton
+            filename="vehicules.csv"
+            headers={["Marque","Modèle","Immatriculation","Année","Couleur","Kilométrage","Prix/jour","Caution","Statut"]}
+            rows={vehicules.map(v => ({ "Marque":v.marque,"Modèle":v.modele,"Immatriculation":v.immatriculation,"Année":v.annee,"Couleur":v.couleur,"Kilométrage":v.kilometrage,"Prix/jour":v.prixJour,"Caution":v.caution,"Statut":STATUT_VEHICULE_LABELS[v.statut] }))}
+          />
+          <Button onClick={openCreate}><Plus className="w-4 h-4" />Ajouter un véhicule</Button>
+        </div>
       </div>
 
       {/* Mini stats */}

@@ -33,7 +33,9 @@ export function Header() {
 
       <div className="flex items-center gap-2">
         {/* Search hint */}
-        <button className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all duration-200 border"
+        <button
+          onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
+          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-all duration-200 border"
           style={{
             backgroundColor: "rgb(var(--foreground) / 0.04)",
             borderColor: "rgb(var(--foreground) / 0.07)",

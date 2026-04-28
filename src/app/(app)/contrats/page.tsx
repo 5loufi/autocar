@@ -1,6 +1,7 @@
 ﻿import { prisma } from "@/lib/prisma";
 import { ContratCard } from "./ContratCard";
-import { FileText, ArrowRight, CheckCircle } from "lucide-react";
+import { SignContratButton } from "./SignContratButton";
+import { FileText, ArrowRight } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatDate, formatCurrency, STATUT_RESERVATION_LABELS, STATUT_RESERVATION_COLORS } from "@/lib/utils";
 
@@ -96,13 +97,7 @@ export default async function ContratsPage() {
                     </span>
                   </td>
                   <td>
-                    {c.signe ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
-                        <CheckCircle className="w-3 h-3" /> Signé
-                      </span>
-                    ) : (
-                      <span className="text-xs text-foreground/25 bg-foreground/[0.04] border border-foreground/[0.06] px-2.5 py-1 rounded-lg">En attente</span>
-                    )}
+                    <SignContratButton id={c.id} signe={c.signe} />
                   </td>
                 </tr>
               ))}
