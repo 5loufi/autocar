@@ -3,16 +3,17 @@ import { cn } from "@/lib/utils";
 interface BadgeProps {
   children: React.ReactNode;
   className?: string;
-  variant?: "default" | "success" | "warning" | "danger" | "info" | "neutral";
+  variant?: "default" | "success" | "warning" | "danger" | "info" | "neutral" | "violet";
 }
 
 const variantClasses = {
-  default: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-  success: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  warning: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  danger: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  info: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  neutral: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
+  default: "bg-white/[0.08] text-white/60",
+  violet:  "bg-violet-500/15 text-violet-300 border border-violet-500/20",
+  success: "bg-emerald-500/12 text-emerald-400 border border-emerald-500/20",
+  warning: "bg-amber-500/12 text-amber-400 border border-amber-500/20",
+  danger:  "bg-rose-500/12 text-rose-400 border border-rose-500/20",
+  info:    "bg-blue-500/12 text-blue-400 border border-blue-500/20",
+  neutral: "bg-white/[0.06] text-white/40",
 };
 
 export function Badge({ children, className, variant = "default" }: BadgeProps) {

@@ -5,15 +5,17 @@ interface CardProps {
   className?: string;
   hover?: boolean;
   onClick?: () => void;
+  gradient?: boolean;
 }
 
-export function Card({ children, className, hover, onClick }: CardProps) {
+export function Card({ children, className, hover, onClick, gradient }: CardProps) {
   return (
     <div
       onClick={onClick}
       className={cn(
-        "card",
-        hover && "hover:shadow-card-hover transition-shadow duration-200 cursor-pointer",
+        "surface overflow-hidden",
+        hover && "hover:shadow-card-hover hover:border-white/[0.10] transition-all duration-300 cursor-pointer",
+        gradient && "border-gradient",
         className
       )}
     >
@@ -24,16 +26,16 @@ export function Card({ children, className, hover, onClick }: CardProps) {
 
 export function CardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800", className)}>
+    <div className={cn("flex items-center justify-between px-5 py-4 border-b border-white/[0.06]", className)}>
       {children}
     </div>
   );
 }
 
 export function CardContent({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("px-6 py-4", className)}>{children}</div>;
+  return <div className={cn("px-5 py-4", className)}>{children}</div>;
 }
 
 export function CardTitle({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <h3 className={cn("font-semibold text-zinc-900 dark:text-zinc-100", className)}>{children}</h3>;
+  return <h3 className={cn("font-semibold text-white text-sm", className)}>{children}</h3>;
 }

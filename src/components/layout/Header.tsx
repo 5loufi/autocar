@@ -1,58 +1,61 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { Bell, Sun, Moon, Search } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { Bell, Search, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
-const pageTitles: Record<string, string> = {
-  "/dashboard":    "Tableau de bord",
-  "/vehicules":    "Véhicules",
-  "/clients":      "Clients",
-  "/reservations": "Réservations",
-  "/contrats":     "Contrats",
-  "/paiements":    "Paiements",
-  "/calendrier":   "Calendrier",
-  "/entretien":    "Entretien",
-  "/rapports":     "Rapports",
-  "/parametres":   "Paramètres",
+const pageTitles: Record<string, { title: string; sub: string }> = {
+  "/dashboard":    { title: "Tableau de bord",  sub: "Vue d'ensemble de votre activité" },
+  "/vehicules":    { title: "Véhicules",         sub: "Gestion de votre parc automobile" },
+  "/clients":      { title: "Clients",           sub: "Base de données clients" },
+  "/reservations": { title: "Réservations",      sub: "Suivi des réservations" },
+  "/contrats":     { title: "Contrats",          sub: "Contrats de location" },
+  "/paiements":    { title: "Paiements",         sub: "Transactions et encaissements" },
+  "/calendrier":   { title: "Calendrier",        sub: "Planning et disponibilités" },
+  "/entretien":    { title: "Entretien",         sub: "Maintenance du parc" },
+  "/rapports":     { title: "Rapports",          sub: "Statistiques et analyses" },
+  "/parametres":   { title: "Paramètres",        sub: "Configuration de l'agence" },
 };
 
 export function Header() {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
-  useEffect(() => setMounted(true), []);
-
-  const title = pageTitles[pathname] ?? pageTitles[Object.keys(pageTitles).find(k => pathname.startsWith(k)) ?? ""] ?? "";
+  const key = Object.keys(pageTitles).find(k => pathname === k || pathname.startsWith(k + "/")) ?? "/dashboard";
+  const { title, sub } = pageTitles[key];
 
   return (
-    <header className="h-14 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-6 sticky top-0 z-20">
-      <h1 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</h1>
+    <header className="h-16 bg-[#0a0a10]/80 backdrop-blur-xl border-b border-white/[0.06] flex items-center justify-between px-6 sticky top-0 z-20">
+      {/* Breadcrumb + Title */}
+      <div className="flex items-center gap-3">
+        <div>
+          <div className="flex items-center gap-1.5 text-white/30 text-xs mb-0.5">
+            <span>AutoGest</span>
+            <ChevronRight className="w-3 h-3" />
+            <span className="text-violet-400">{title}</span>
+          </div>
+          <h1 className="text-sm font-bold text-white leading-none">{title}</h1>
+        </div>
+      </div>
 
-      <div className="flex items-center gap-1">
-        {/* Thème */}
-        {mounted && (
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
-            title="Basculer le thème"
-          >
-            {theme === "dark"
-              ? <Sun className="w-4 h-4 text-zinc-500" />
-              : <Moon className="w-4 h-4 text-zinc-500" />
-            }
-          </button>
-        )}
+      <div className="flex items-center gap-2">
+        {/* Search */}
+        <button
+          onClick={() => setSearchOpen(!searchOpen)}
+          className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.07] rounded-xl text-white/30 text-xs transition-all duration-200"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span className="hidden sm:block">Rechercher…</span>
+          <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 bg-white/[0.06] rounded text-[10px] font-mono">⌘K</kbd>
+        </button>
 
         {/* Notifications */}
-        <button className="relative p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors">
-          <Bell className="w-4 h-4 text-zinc-500" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
+        <button className="relative p-2 hover:bg-white/[0.06] rounded-xl transition-colors">
+          <Bell className="w-4 h-4 text-white/40" />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-violet-500 rounded-full shadow-[0_0_6px_rgba(139,92,246,0.8)]" />
         </button>
 
         {/* Avatar */}
-        <div className="ml-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-white text-xs font-bold cursor-pointer">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white cursor-pointer shadow-glow-sm">
           AG
         </div>
       </div>

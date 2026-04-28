@@ -10,12 +10,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses = {
-  primary: "btn-primary",
+  primary:   "btn-primary",
   secondary: "btn-secondary",
-  ghost: "btn-ghost",
-  danger: "inline-flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white text-sm font-medium rounded-xl transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
+  ghost:     "btn-ghost",
+  danger:    "inline-flex items-center gap-2 px-4 py-2.5 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/25 text-rose-400 text-sm font-semibold rounded-xl transition-all duration-200 disabled:opacity-40",
 };
-
 const sizeClasses = {
   sm: "!px-3 !py-1.5 !text-xs",
   md: "",

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Wrench, Trash2, Search, AlertTriangle } from "lucide-react";
+import { Plus, Wrench, Trash2, Search, AlertTriangle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -30,16 +30,19 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
     return !q || e.vehicule.marque.toLowerCase().includes(q) || e.vehicule.modele.toLowerCase().includes(q) || e.type.toLowerCase().includes(q);
   }), [entretiens, search]);
 
-  const rappelsProches = entretiens.filter(e => e.prochainRappel && !isPast(new Date(e.prochainRappel)) && isPast(addDays(new Date(e.prochainRappel), -7)));
+  const rappelsProches = entretiens.filter(e =>
+    e.prochainRappel && !isPast(new Date(e.prochainRappel)) && isPast(addDays(new Date(e.prochainRappel), -7))
+  );
+  const rappelsEnRetard = entretiens.filter(e =>
+    e.prochainRappel && isPast(new Date(e.prochainRappel))
+  );
 
   async function handleSave() {
     if (!form.vehiculeId || !form.date || !form.type) return;
     setLoading(true);
     try {
       const body = {
-        vehiculeId: form.vehiculeId,
-        date: new Date(form.date),
-        type: form.type,
+        vehiculeId: form.vehiculeId, date: new Date(form.date), type: form.type,
         cout: form.cout ? parseFloat(form.cout) : null,
         notes: form.notes || null,
         prochainRappel: form.prochainRappel ? new Date(form.prochainRappel) : null,
@@ -48,11 +51,8 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
       const created = await res.json();
       const vehicule = vehicules.find(v => v.id === form.vehiculeId)!;
       setEntretiens(prev => [{ ...created, vehicule }, ...prev]);
-      setModalOpen(false);
-      setForm(defaultForm);
-    } finally {
-      setLoading(false);
-    }
+      setModalOpen(false); setForm(defaultForm);
+    } finally { setLoading(false); }
   }
 
   async function handleDelete() {
@@ -62,92 +62,109 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
       await fetch(`/api/entretien/${deleteId}`, { method: "DELETE" });
       setEntretiens(prev => prev.filter(e => e.id !== deleteId));
       setDeleteId(null);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }
 
   return (
     <div className="space-y-5 animate-slide-up">
       <div className="page-header">
         <div>
-          <h2 className="section-title">Entretien des véhicules</h2>
-          <p className="text-sm text-zinc-500 mt-0.5">{entretiens.length} entrée{entretiens.length > 1 ? "s" : ""}</p>
+          <h2 className="section-title">Entretien</h2>
+          <p className="text-xs text-white/30 mt-1">{entretiens.length} entrée{entretiens.length > 1 ? "s" : ""}</p>
         </div>
         <Button onClick={() => { setForm(defaultForm); setModalOpen(true); }}>
           <Plus className="w-4 h-4" /> Ajouter un entretien
         </Button>
       </div>
 
-      {rappelsProches.length > 0 && (
-        <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl px-5 py-3.5">
-          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+      {/* Alert banners */}
+      {rappelsEnRetard.length > 0 && (
+        <div className="flex items-start gap-3 bg-rose-500/8 border border-rose-500/20 rounded-2xl px-5 py-3.5">
+          <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-amber-700 dark:text-amber-400">{rappelsProches.length} rappel{rappelsProches.length > 1 ? "s" : ""} d&apos;entretien dans les 7 prochains jours</p>
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-              {rappelsProches.map(e => `${e.vehicule.marque} ${e.vehicule.modele}`).join(", ")}
+            <p className="text-sm font-semibold text-rose-400">{rappelsEnRetard.length} entretien{rappelsEnRetard.length > 1 ? "s" : ""} en retard</p>
+            <p className="text-xs text-rose-400/70 mt-0.5">
+              {rappelsEnRetard.map(e => `${e.vehicule.marque} ${e.vehicule.modele}`).join(" · ")}
+            </p>
+          </div>
+        </div>
+      )}
+      {rappelsProches.length > 0 && (
+        <div className="flex items-start gap-3 bg-amber-500/8 border border-amber-500/20 rounded-2xl px-5 py-3.5">
+          <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-amber-400">{rappelsProches.length} rappel{rappelsProches.length > 1 ? "s" : ""} dans les 7 prochains jours</p>
+            <p className="text-xs text-amber-400/70 mt-0.5">
+              {rappelsProches.map(e => `${e.vehicule.marque} ${e.vehicule.modele}`).join(" · ")}
             </p>
           </div>
         </div>
       )}
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher véhicule, type d'entretien…" className="input-base pl-9" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Véhicule, type d'entretien…" className="input-base pl-9" />
       </div>
 
       {filtered.length === 0 ? (
         <EmptyState icon={Wrench} title="Aucun entretien" description="Enregistrez le premier entretien d'un véhicule." />
       ) : (
-        <div className="card overflow-hidden">
-          <table className="w-full">
+        <div className="surface overflow-hidden">
+          <table className="data-table">
             <thead>
-              <tr className="border-b border-zinc-100 dark:border-zinc-800">
-                <th className="text-left text-xs font-medium text-zinc-400 px-5 py-3">Véhicule</th>
-                <th className="text-left text-xs font-medium text-zinc-400 px-5 py-3">Type</th>
-                <th className="text-left text-xs font-medium text-zinc-400 px-5 py-3">Date</th>
-                <th className="text-left text-xs font-medium text-zinc-400 px-5 py-3">Coût</th>
-                <th className="text-left text-xs font-medium text-zinc-400 px-5 py-3">Prochain rappel</th>
-                <th className="px-5 py-3" />
-              </tr>
+              <tr><th>Véhicule</th><th>Type</th><th>Date</th><th>Coût</th><th>Prochain rappel</th><th /></tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tbody>
               {filtered.map(e => {
-                const rappelBientot = e.prochainRappel && !isPast(new Date(e.prochainRappel)) && isPast(addDays(new Date(e.prochainRappel), -7));
+                const enRetard = e.prochainRappel && isPast(new Date(e.prochainRappel));
+                const bientot = e.prochainRappel && !enRetard && isPast(addDays(new Date(e.prochainRappel), -7));
                 return (
-                  <tr key={e.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{e.vehicule.marque} {e.vehicule.modele}</p>
-                      <p className="text-xs font-mono text-zinc-400">{e.vehicule.immatriculation}</p>
+                  <tr key={e.id} className="group">
+                    <td>
+                      <p className="text-sm font-semibold text-white/90">{e.vehicule.marque} {e.vehicule.modele}</p>
+                      <code className="text-[11px] font-mono text-white/30">{e.vehicule.immatriculation}</code>
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td>
                       <div className="flex items-center gap-2">
-                        <Wrench className="w-3.5 h-3.5 text-zinc-400" />
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{e.type}</span>
+                        <div className="w-6 h-6 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                          <Wrench className="w-3 h-3 text-orange-400" />
+                        </div>
+                        <div>
+                          <span className="text-sm text-white/80">{e.type}</span>
+                          {e.notes && <p className="text-xs text-white/30 mt-0.5 max-w-[160px] truncate">{e.notes}</p>}
+                        </div>
                       </div>
-                      {e.notes && <p className="text-xs text-zinc-400 mt-0.5">{e.notes}</p>}
                     </td>
-                    <td className="px-5 py-3.5">
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">{formatDate(e.date)}</span>
+                    <td>
+                      <div className="flex items-center gap-1.5 text-xs text-white/50">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(e.date)}
+                      </div>
                     </td>
-                    <td className="px-5 py-3.5">
-                      <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                        {e.cout != null ? formatCurrency(e.cout) : "—"}
+                    <td>
+                      <span className="text-sm font-semibold text-white/80">
+                        {e.cout != null ? formatCurrency(e.cout) : <span className="text-white/20">—</span>}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td>
                       {e.prochainRappel ? (
-                        <span className={`text-sm font-medium ${rappelBientot ? "text-amber-600 dark:text-amber-400" : "text-zinc-600 dark:text-zinc-400"}`}>
-                          {rappelBientot && <AlertTriangle className="w-3 h-3 inline mr-1" />}
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg ${
+                          enRetard
+                            ? "bg-rose-500/12 text-rose-400 border border-rose-500/20"
+                            : bientot
+                            ? "bg-amber-500/12 text-amber-400 border border-amber-500/20"
+                            : "text-white/40"
+                        }`}>
+                          {(enRetard || bientot) && <AlertTriangle className="w-3 h-3" />}
                           {formatDate(e.prochainRappel)}
                         </span>
                       ) : (
-                        <span className="text-zinc-400 text-sm">—</span>
+                        <span className="text-white/20 text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-5 py-3.5">
-                      <button onClick={() => setDeleteId(e.id)} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                        <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-500" />
+                    <td>
+                      <button onClick={() => setDeleteId(e.id)} className="p-1.5 hover:bg-rose-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                        <Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-rose-400" />
                       </button>
                     </td>
                   </tr>
@@ -158,59 +175,43 @@ export function EntretienClient({ entretiens: initial, vehicules }: { entretiens
         </div>
       )}
 
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Ajouter un entretien"
-        size="md"
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setModalOpen(false)}>Annuler</Button>
-            <Button onClick={handleSave} loading={loading}>Enregistrer</Button>
-          </>
-        }
-      >
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Ajouter un entretien" size="md"
+        footer={<><Button variant="secondary" onClick={() => setModalOpen(false)}>Annuler</Button><Button onClick={handleSave} loading={loading}>Enregistrer</Button></>}>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Véhicule *</label>
+            <label className="label">Véhicule *</label>
             <select value={form.vehiculeId} onChange={e => setForm(p => ({...p, vehiculeId: e.target.value}))} className="input-base">
               <option value="">Choisir un véhicule</option>
               {vehicules.map(v => <option key={v.id} value={v.id}>{v.marque} {v.modele} — {v.immatriculation}</option>)}
             </select>
           </div>
+          <div className="space-y-1.5">
+            <label className="label">Type d&apos;entretien *</label>
+            <input value={form.type} onChange={e => setForm(p => ({...p, type: e.target.value}))} className="input-base" placeholder="Ex: Vidange, pneus, révision…" />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Date *</label>
+              <label className="label">Date *</label>
               <input type="date" value={form.date} onChange={e => setForm(p => ({...p, date: e.target.value}))} className="input-base" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Coût (MAD)</label>
+              <label className="label">Coût (MAD)</label>
               <input type="number" value={form.cout} onChange={e => setForm(p => ({...p, cout: e.target.value}))} className="input-base" placeholder="0" />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Type d&apos;entretien *</label>
-            <input value={form.type} onChange={e => setForm(p => ({...p, type: e.target.value}))} className="input-base" placeholder="Ex: Vidange, pneus, révision…" />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Prochain rappel</label>
+            <label className="label">Prochain rappel</label>
             <input type="date" value={form.prochainRappel} onChange={e => setForm(p => ({...p, prochainRappel: e.target.value}))} className="input-base" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Notes</label>
+            <label className="label">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(p => ({...p, notes: e.target.value}))} className="input-base resize-none" rows={2} />
           </div>
         </div>
       </Modal>
 
-      <ConfirmDialog
-        open={!!deleteId}
-        onClose={() => setDeleteId(null)}
-        onConfirm={handleDelete}
-        loading={loading}
-        title="Supprimer cet entretien"
-        description="Cet enregistrement sera supprimé définitivement."
-      />
+      <ConfirmDialog open={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} loading={loading}
+        title="Supprimer cet entretien" description="Cet enregistrement sera supprimé définitivement." />
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { TrendingUp, Car, Users, AlertCircle } from "lucide-react";
+import { TrendingUp, Car, Users, Wallet, Trophy, AlertCircle } from "lucide-react";
 import { RapportCharts } from "./RapportCharts";
 
 async function getStats() {
@@ -15,10 +14,8 @@ async function getStats() {
     prisma.vehicule.count(),
     prisma.paiement.aggregate({ _sum: { montant: true }, where: { statut: "PAYE" } }),
     prisma.reservation.groupBy({
-      by: ["vehiculeId"],
-      _count: true,
-      orderBy: { _count: { vehiculeId: "desc" } },
-      take: 5,
+      by: ["vehiculeId"], _count: true,
+      orderBy: { _count: { vehiculeId: "desc" } }, take: 5,
     }),
     prisma.paiement.findMany({
       where: { statut: { in: ["EN_ATTENTE", "PARTIEL"] } },
@@ -37,8 +34,7 @@ async function getStats() {
   });
 
   const vehiculesAvecStats = vehiculesPopulaires.map(v => ({
-    ...v,
-    vehicule: vehiculeDetails.find(vd => vd.id === v.vehiculeId)!,
+    ...v, vehicule: vehiculeDetails.find(vd => vd.id === v.vehiculeId)!,
   }));
 
   const monthlyData: Record<string, { revenus: number; locations: number }> = {};
@@ -60,96 +56,104 @@ async function getStats() {
 
 export default async function RapportsPage() {
   const stats = await getStats();
+  const totalEnAttente = stats.paiementsEnAttente.reduce((s, p) => s + p.montant, 0);
+
+  const kpis = [
+    { label: "Chiffre d'affaires", value: formatCurrency(stats.totalRevenus), icon: TrendingUp, color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
+    { label: "Total réservations",  value: stats.totalReservations.toString(),  icon: Car,        color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+    { label: "Clients",             value: stats.totalClients.toString(),        icon: Users,      color: "text-blue-400",    bg: "bg-blue-500/10 border-blue-500/20" },
+    { label: "Véhicules en parc",   value: stats.totalVehicules.toString(),      icon: Car,        color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20" },
+  ];
 
   return (
     <div className="space-y-5 animate-slide-up">
-      <h2 className="section-title">Rapports</h2>
+      <div>
+        <h2 className="section-title">Rapports</h2>
+        <p className="text-xs text-white/30 mt-1">Vue d&apos;ensemble des performances</p>
+      </div>
 
+      {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {[
-          { label: "Chiffre d'affaires total", value: formatCurrency(stats.totalRevenus), icon: TrendingUp, color: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
-          { label: "Total réservations", value: stats.totalReservations.toString(), icon: Car, color: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
-          { label: "Total clients", value: stats.totalClients.toString(), icon: Users, color: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20" },
-          { label: "Véhicules en parc", value: stats.totalVehicules.toString(), icon: Car, color: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
-        ].map(s => (
-          <div key={s.label} className="card p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs text-zinc-500 mb-1">{s.label}</p>
-                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{s.value}</p>
-              </div>
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${s.color}`}>
-                <s.icon className="w-4 h-4" />
+        {kpis.map(s => (
+          <div key={s.label} className="surface p-5">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs text-white/30 leading-tight">{s.label}</p>
+              <div className={`w-8 h-8 rounded-xl border flex items-center justify-center flex-shrink-0 ${s.bg}`}>
+                <s.icon className={`w-4 h-4 ${s.color}`} />
               </div>
             </div>
+            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
+      {/* Charts */}
       <RapportCharts monthlyData={stats.monthlyData} />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        {/* Véhicules les plus loués */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Véhicules les plus loués</CardTitle>
-          </CardHeader>
-          <CardContent className="!p-0">
-            {stats.vehiculesPopulaires.length === 0 ? (
-              <p className="text-sm text-zinc-400 px-6 py-8 text-center">Aucune donnée</p>
-            ) : (
-              <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {stats.vehiculesPopulaires.map((v, i) => (
-                  <div key={v.vehiculeId} className="flex items-center justify-between px-6 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-500">
-                        {i + 1}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{v.vehicule?.marque} {v.vehicule?.modele}</p>
-                        <p className="text-xs font-mono text-zinc-400">{v.vehicule?.immatriculation}</p>
-                      </div>
+        {/* Top véhicules */}
+        <div className="surface overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-white/[0.06]">
+            <Trophy className="w-4 h-4 text-amber-400" />
+            <p className="text-sm font-semibold text-white/80">Véhicules les plus loués</p>
+          </div>
+          {stats.vehiculesPopulaires.length === 0 ? (
+            <p className="text-sm text-white/25 px-5 py-8 text-center">Aucune donnée disponible</p>
+          ) : (
+            <div className="divide-y divide-white/[0.04]">
+              {stats.vehiculesPopulaires.map((v, i) => (
+                <div key={v.vehiculeId} className="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                      i === 0 ? "bg-amber-500/15 text-amber-400" :
+                      i === 1 ? "bg-white/8 text-white/50" :
+                      i === 2 ? "bg-orange-500/10 text-orange-400/70" :
+                      "bg-white/[0.04] text-white/25"
+                    }`}>
+                      {i + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-white/90">{v.vehicule?.marque} {v.vehicule?.modele}</p>
+                      <code className="text-[11px] font-mono text-white/30">{v.vehicule?.immatriculation}</code>
                     </div>
-                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{v._count} location{v._count > 1 ? "s" : ""}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <span className="text-sm font-semibold text-white/60">{v._count} location{v._count > 1 ? "s" : ""}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Paiements en attente */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Paiements en attente</CardTitle>
-            {stats.paiementsEnAttente.length > 0 && (
-              <span className="badge bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                {formatCurrency(stats.paiementsEnAttente.reduce((s, p) => s + p.montant, 0))}
+        <div className="surface overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-4 border-b border-white/[0.06]">
+            <Wallet className="w-4 h-4 text-amber-400" />
+            <p className="text-sm font-semibold text-white/80">Paiements en attente</p>
+            {totalEnAttente > 0 && (
+              <span className="ml-auto text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
+                {formatCurrency(totalEnAttente)}
               </span>
             )}
-          </CardHeader>
-          <CardContent className="!p-0">
-            {stats.paiementsEnAttente.length === 0 ? (
-              <div className="flex items-center gap-2 px-6 py-8 justify-center">
-                <AlertCircle className="w-4 h-4 text-emerald-500" />
-                <p className="text-sm text-emerald-600 dark:text-emerald-400">Tous les paiements sont à jour</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {stats.paiementsEnAttente.slice(0, 5).map(p => (
-                  <div key={p.id} className="flex items-center justify-between px-6 py-3.5">
-                    <div>
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        {p.reservation.client.prenom} {p.reservation.client.nom}
-                      </p>
-                    </div>
-                    <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">{formatCurrency(p.montant)}</span>
+          </div>
+          {stats.paiementsEnAttente.length === 0 ? (
+            <div className="flex items-center justify-center gap-2 px-5 py-8">
+              <AlertCircle className="w-4 h-4 text-emerald-400" />
+              <p className="text-sm text-emerald-400">Tous les paiements sont à jour</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/[0.04]">
+              {stats.paiementsEnAttente.slice(0, 5).map(p => (
+                <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors">
+                  <div>
+                    <p className="text-sm font-semibold text-white/90">{p.reservation.client.prenom} {p.reservation.client.nom}</p>
+                    <p className="text-xs text-white/30 mt-0.5">{p.statut === "PARTIEL" ? "Paiement partiel" : "En attente"}</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <span className="text-sm font-bold text-amber-400">{formatCurrency(p.montant)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
