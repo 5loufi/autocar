@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Vehicule {
+  id              String   @id @default(cuid())
+  marque          String
+  modele          String
+  annee           Int
+  immatriculation String   @unique
+  couleur         String
+  kilometrage     Int      @default(0)
+  prixJour        Float
+  caution         Float    @default(0)
+  statut          String   @default("DISPONIBLE")
+  photos          String   @default("")
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  reservations Reservation[]
+  entretiens   Entretien[]
+}
+
+model Client {
+  id           String    @id @default(cuid())
+  nom          String
+  prenom       String
+  telephone    String
+  email        String?
+  adresse      String?
+  permisNumero String?
+  permisExpiry DateTime?
+  cinNumero    String?
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  reservations Reservation[]
+}
+
+model Reservation {
+  id         String   @id @default(cuid())
+  vehiculeId String
+  clientId   String
+  dateDepart DateTime
+  dateRetour DateTime
+  prixTotal  Float
+  caution    Float    @default(0)
+  statut     String   @default("EN_ATTENTE")
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  vehicule  Vehicule   @relation(fields: [vehiculeId], references: [id])
+  client    Client     @relation(fields: [clientId], references: [id])
+  paiements Paiement[]
+  contrat   Contrat?
+}
+
+model Contrat {
+  id            String    @id @default(cuid())
+  reservationId String    @unique
+  numero        String    @unique
+  conditions    String?
+  signe         Boolean   @default(false)
+  dateSigne     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+}
+
+model Paiement {
+  id            String   @id @default(cuid())
+  reservationId String
+  montant       Float
+  modePaiement  String   @default("ESPECES")
+  statut        String   @default("EN_ATTENTE")
+  type          String   @default("SOLDE")
+  reference     String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+}
+
+model Entretien {
+  id             String    @id @default(cuid())
+  vehiculeId     String
+  date           DateTime
+  type           String
+  cout           Float?
+  notes          String?
+  prochainRappel DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  vehicule Vehicule @relation(fields: [vehiculeId], references: [id])
+}

@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(Get-Command node -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-ChildItem -Recurse -File | Where-Object { $_.FullName -notmatch \"node_modules|\\\\.next\" } | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\(\"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\\\\\", \"\"\\) } | Sort-Object)",
+      "PowerShell(winget --version)",
+      "PowerShell(winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements 2>&1)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); node --version; npm --version)",
+      "PowerShell(Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force; $env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); npm --version)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npm install 2>&1 | Select-Object -Last 10)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npm install 2>&1 | Select-String \"added|warn EBADENGINE\" | Select-Object -First 5)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; Test-Path node_modules; \\(Get-ChildItem node_modules\\).Count)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npx prisma db push 2>&1)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npx ts-node --compiler-options '{\\\\\"module\\\\\":\\\\\"CommonJS\\\\\"}' prisma/seed.ts 2>&1)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npm run dev 2>&1 | Select-Object -First 20)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -MaximumRedirection 5)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npm install autoprefixer --save-dev 2>&1 | Select-Object -Last 5)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npm run dev 2>&1 | Select-Object -First 5)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000/dashboard\" -UseBasicParsing -MaximumRedirection 3)",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -MaximumRedirection 5 -TimeoutSec 10)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000/api/vehicules\" -UseBasicParsing -TimeoutSec 15)",
+      "PowerShell(Start-Sleep -Seconds 3; \\(Invoke-WebRequest -Uri \"http://localhost:3000/api/vehicules\" -UseBasicParsing -TimeoutSec 20\\).Content | ConvertFrom-Json | Select-Object -First 2 | Format-List marque, modele, statut)",
+      "PowerShell(\\(Invoke-WebRequest -Uri \"http://localhost:3000/dashboard\" -UseBasicParsing -TimeoutSec 20\\).StatusCode)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; node -e \"const { prisma } = require\\('./src/lib/prisma'\\); prisma.reservation.findMany\\({ include: { client: true, vehicule: true, paiements: true } }\\).then\\(r => console.log\\('OK', r.length\\)\\).catch\\(e => console.error\\(e.message\\)\\).finally\\(\\(\\) => prisma.`$disconnect\\(\\)\\)\" 2>&1)",
+      "PowerShell(try { Invoke-WebRequest -Uri \"http://localhost:3000/dashboard\" -UseBasicParsing -TimeoutSec 10 } catch { $resp = $_.Exception.Response; $stream = $resp.GetResponseStream\\(\\); $reader = New-Object System.IO.StreamReader\\($stream\\); $text = $reader.ReadToEnd\\(\\); $text | Select-String -Pattern '\"message\":\"[^\"]{0,200}\"' | Select-Object -First 5 })",
+      "PowerShell(try { Invoke-WebRequest -Uri \"http://localhost:3000/dashboard\" -UseBasicParsing -TimeoutSec 10 } catch { $_.Exception.Message })",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npx next build 2>&1 | Select-String -Pattern \"Error|error|failed|Failed\" | Select-Object -First 30)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npx next build 2>&1 | Select-String -Pattern \"error TS|Error|\\\\.tsx|\\\\.ts\" | Select-Object -First 20)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npx next build 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npx next build 2>&1 | Select-Object -Last 25)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Set-Location \"c:\\\\Users\\\\pc\\\\Desktop\\\\New folder \\(4\\)\"; npm run dev 2>&1)"
+    ]
+  }
+}
